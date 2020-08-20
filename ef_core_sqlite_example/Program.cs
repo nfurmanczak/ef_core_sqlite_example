@@ -50,7 +50,7 @@ namespace ef_core_sqlite_example
                 {
                     for (int i = 0; i < 5; i++)
                     {
-                        db.Add(new Member() { FirstName = "vorname " + i, LastName = "nachname " + i });
+                        db.Add(new Member() { FirstName = "vorname " + i, LastName = "nachname " + i});
                         // db.Add(new Item() {Id = 100})
                         db.SaveChanges();
                     }
