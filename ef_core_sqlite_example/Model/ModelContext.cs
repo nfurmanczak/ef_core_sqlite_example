@@ -32,6 +32,7 @@ namespace ef_core_sqlite_example.Model
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //modelBuilder.Entity<Member>().HasNoKey();
+            //modelBuilder.Entity<Member>().HasKey("ID");
             modelBuilder.Entity<Member>().HasKey("LastName", "FirstName");
             //modelBuilder.Entity<Member>().HasAlternateKey("LastName", "FirstName");
 
