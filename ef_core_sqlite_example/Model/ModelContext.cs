@@ -5,37 +5,44 @@ namespace ef_core_sqlite_example.Model
 {
 
     // Unsere eigene Klasse ModelContext leitet von Microsoft.EntityFrameworkCore.DbContext ab und erbt somit
-    // alle Eigenschaften (?) und Funktionen von Microsoft.EntityFrameworkCore.DbContext
+    // alle Eigenschaftenund Funktionen von Microsoft.EntityFrameworkCore.DbContext
     public class ModelContext : DbContext
     {
         // Name der SQLite Datenbank, als abwechslung mal eine Variable die mit const deklariert wurde und somit
         // während der Laufzeit des Programmes nicht verändert werden kann. 
-        // Ohne Angabe eines Pfads wird die Datenbank im Projektordner gespeichert
-        // /Users/nfurmanc/Projects/ef_core_sqlite_example/ef_core_sqlite_example/bin/Debug/netcoreapp3.1/CityLibrary.Sqlite
+        // Ohne Angabe eines Pfads wird die Datenbank direkt im Projektordner gespeichert
+        // Beispiel: /Users/nikolai/Projects/ef_core_sqlite_example/ef_core_sqlite_example/bin/Debug/netcoreapp3.1/CityLibrary.Sqlite
 
-        public const string DataBaseFile = "CityLibrary.Sqlite"; // Collection for all persistent Item objects
+        public const string DataBaseFile = "CityLibrary.Sqlite";
 
-        // set und get 
+        // Einbinden der Klassen damit ModelContext die 
         public DbSet<Item> Items { get; set; }
         public DbSet<Member> Members { get; set; }
+        public DbSet<Medium> Mediums { get; set; }
 
-        // Connection String zur SQLite Datenbank
-        // OOP Polymorphie 
-        // Wir überschreiben die Methode OnConfiguring aus der Basisklasse DbContext um unsere Variable DataBaseFile
-        // als Pfad zur SQLite DB zu nutzen 
+        // Überschreiben der Funktion OnConfiguring aus der Klasse Microsoft.EntityFrameworkCore.DbContext
+        // In dieser Funktion werden die Zugriffsinformationen zur Datenbank gespeichert. Je nach genutzem
+        // DBMS müssen andere Informationen (Treiber, Port, Socket, IP, etc.) angegeben werden. 
+
         protected override void OnConfiguring(DbContextOptionsBuilder dcob)
         {
-            // inject Sqlite usage
             dcob.UseSqlite("Data Source=" + DataBaseFile);
         }
 
+        // Überschreiben der Funktion OnModelCreating aus der Klasse Microsoft.EntityFrameworkCore.DbContext
+        // In der Funktion wird u.a. definiert welche Primärschlüssel die jeweiligen Tabellen besitzen. 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            //modelBuilder.Entity<Member>().HasNoKey();
-            //modelBuilder.Entity<Member>().HasKey("ID");
-            modelBuilder.Entity<Member>().HasKey("LastName", "FirstName");
-            //modelBuilder.Entity<Member>().HasAlternateKey("LastName", "FirstName");
 
+            //  
+            //modelBuilder.Entity<Member>().HasNoKey();
+
+            // Definieren eines PK in der Tabelle Member 
+            modelBuilder.Entity<Medium>().HasKey("Identifier");
+
+            // Zusammengesetzter PK in der Tabelle 
+            modelBuilder.Entity<Member>().HasKey("LastName", "FirstName");
+            //modelBuilder.Entity<Member>().HasAlternateKey("LastName", "FirstName"); 
         }
     }
 }

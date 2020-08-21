@@ -11,15 +11,16 @@ namespace ef_core_sqlite_example
         static void Main(string[] args)
         {
 
-            // Löschen der bestehenden Datenbank. 
+            //  --> Löschen der bestehenden Datenbank. <-- 
             // Die Methode File.Delete wird aus der Klasse System.IO geladen
-            // DataBaseFile ist eine Variable aus der Klasse ModelContext 
+            // DataBaseFile ist eine Variable aus der Klasse ModelContext
             File.Delete(ModelContext.DataBaseFile);
 
 
-            // using-Anweisungen werden genutzt um sicherzustellen das Objekte nur innerhalb dieser
-            // Anweisung gültig sind und danach automatisch gelöscht werden. Die using-Anweisung macht das
-            // disposen (löschen) von Objekten überflüssig
+            // --> Using <--
+            // using-Anweisungen werden genutzt um sicherzustellen das Objekte nur innerhalb dieses
+            // Codeblockes gültig sind und danach automatisch gelöscht werden. Die using-Anweisung macht das
+            // disposen (löschen) von Objekten überflüssig.
 
             // Bei einer Variable vom typ "var" wählt der C# Compiler automatisch den passenden Datentyp
             // Alternativ würde auch: using (ModelContext db = new ModelContext()) funktionieren
@@ -28,24 +29,35 @@ namespace ef_core_sqlite_example
             {
 
                 // EnsureCreated() ist eine Funktion aus Microsoft.EntityFrameworkCore welche prüft ob
-                // die angegebene Datenbank vorhanden ist. Boolsche Rückgabewert
+                // die angegebene Datenbank vorhanden ist. (Boolsche Rückgabewert)
 
-                // Frage: Wieso können wir nicht db.DatebaseFile.EnsureCreated() verwendet? Die Variable DatebaseFile
-                // sollte uns eigentlich zur verfügung stehen. 
+                // Frage: Wieso können wir nicht db.DatebaseFile.EnsureCreated() verwendet?
+                // Antwort: Das EF Framework erwartet die Verbindung zur Datenbank bzw. den Dateinamen in der Funktion
+                // OnConfiguring (siehe Klasse ModelContext.cs) 
 
                 db.Database.EnsureCreated();
-                
+
+                // Die Funktion db.Items.Count()  liefert als Rückgabewert die Anzahl der Datensätze (Tupel)
+                // in der Tabelle Items. Sind keine Datensätze vorhanden, weil die DB z.B. vorher gelöscht wurde,
+                // werden mittels einer FOR-Schleife mehrere Tupel in die Tabelle 
+
                 if (db.Items.Count() == 0)
                 {
                     for (int i = 0; i < 13; i++)
                     {
+                        // Erzeugt ein neues Tupel in der Tabelle Item, da für die Spalte ID autoincrement gesetzt wurde,
+                        // wählt SQLite  
                         db.Add(new Item());
-                        // db.Add(new Item() {Id = 100})
+
+                        // db.Add(new Item() {Id = 100}) --> Alternativer Insert mit einem Festenwert für die ID 
+
+                        // Änderungen an der Tabelle oder Tupeln werden erst mit der Funktion SaveChanges() in die Datenbank übernommen. 
                         db.SaveChanges();
                     }
 
                 }
 
+                // Analog zu Items: Wenn keine Tupel vorhanden sind, wird mittels einer FOR-Schleif 
                 if (db.Members.Count() == 0)
                 {
                     for (int i = 0; i < 5; i++)
@@ -62,7 +74,8 @@ namespace ef_core_sqlite_example
                     db.Add(new Item()); db.Add(new Item()); db.Add(new Item()); db.SaveChanges();
                 }
 
-                // show data
+
+                // Auslesen von Tupel mittels FOR-Schleife und Platzhalter 
                 foreach (var item in db.Items)
                 {
                     Console.WriteLine($"Item: {item.Id}");
@@ -72,7 +85,6 @@ namespace ef_core_sqlite_example
                 {
                     Console.WriteLine($"Vorname: {member.FirstName}");
                     Console.WriteLine($"Nachname: {member.LastName}");
-
                 }
             }
 

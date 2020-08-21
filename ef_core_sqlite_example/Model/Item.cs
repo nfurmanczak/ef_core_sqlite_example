@@ -3,12 +3,9 @@ namespace ef_core_sqlite_example.Model
 
 {
     // ITEMS.CS
-    // Die Klasse beschreibt die Attribute der SQLite Datenbank 
-    // Konstruktur der Klasse darf keine Parameter haben. Parameterlose Konstruktoren werden aufgerufen, wenn ein Objekt
-    // durch Verwendung des Operators new instanziiert wird und keine Argumente für new bereitgestellt werden.
-
-    // Klassen ohne Konstruktoren erhalten vom C#-Compiler einen öffentlichen parameterlosen Konstruktor, um die Instanziierung
-    // der Klasse zuzulassen, außer die Klasse ist static. 
+    // Die Klasse beschreibt die Attribute der SQLite Tabelle, jede Klasse im Ordner Model bildet eine Tabelle ab.
+    // Der Konstruktur der Klasse darf keine Parameter haben. Es sollte also der C# Standardkonstruktor genutzt werden
+    // oder ein parameterloser Konstruktur verwendet werden. 
 
     public class Item
     {
