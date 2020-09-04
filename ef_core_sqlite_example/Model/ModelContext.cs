@@ -65,6 +65,8 @@ namespace ef_core_sqlite_example.Model
                 .WithMany().
                 OnDelete(DeleteBehavior.Cascade);
 
+            
+
             /* Die Beschreibung von Beziehungen kann sowohl aus der Sicht der Tabelle Items als auch Members erfolgen.
              * Für Members ergibt sich eine erwas andere Sichtweise: Während ein Item nur einem Member zugeordnet wird, 
              * kann ein Member mehrere Items ausleihen. 

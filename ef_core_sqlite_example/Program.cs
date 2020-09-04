@@ -1,6 +1,5 @@
 ﻿// using ef_core_sqlite_example.Model wird benötigt um auf die Klassen im Verzeichnis "Model/" zuzugreifen 
 using ef_core_sqlite_example.Model;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.IO;
 using System.Linq;
@@ -56,8 +55,14 @@ namespace ef_core_sqlite_example
                     }
                 }
 
-                // Hinzufügen eines neuen Members und Items 
-                db.Add(new Member() { FirstName = "Max", LastName = "Maximum"});
+                // var x1 = db.Members.FirstOrDefault(); Auslesen des ersten Datensatzes 
+
+                // Hinzufügen des ersten Member/Angestellten 
+                var boss = new Member() { FirstName = "Hugo", LastName = "Boss"  }; 
+
+                // Hinzufügen von zusätzen Membern/Angestellten welche als Vorgesetzten "Hugo Boss" haben
+                db.Add(new Member() { FirstName = "Peter", LastName = "Postmann", Vorgesetzter = boss });
+                db.Add(new Member() { FirstName = "Lisa", LastName = "Lustig", Vorgesetzter = boss });
                 db.SaveChanges();
 
 
