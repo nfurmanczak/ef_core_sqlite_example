@@ -1,8 +1,11 @@
 ﻿// using ef_core_sqlite_example.Model wird benötigt um auf die Klassen im Verzeichnis "Model/" zuzugreifen 
 using ef_core_sqlite_example.Model;
+using System.Collections.Generic; 
 using System;
 using System.IO;
 using System.Linq;
+using System.Xml.Serialization;
+using System.Globalization; 
 
 namespace ef_core_sqlite_example
 {
@@ -35,6 +38,41 @@ namespace ef_core_sqlite_example
                 // OnConfiguring (siehe Klasse ModelContext.cs) 
 
                 db.Database.EnsureCreated();
+
+
+
+                using (var sr = new StreamReader(@"@../../../fake-persons.txt", true))
+                {
+                    List<Member> fakeMembers = new List<Member>();
+
+                    if (!sr.EndOfStream)
+                    {
+                        sr.ReadLine();
+                    }
+
+                    while (!sr.EndOfStream)
+                    {
+                        var l = sr.ReadLine();
+                        var a = l.Split(';', ',');
+
+                        Console.WriteLine("Datum: " + DateTime.Parse(a[9].Trim(), CultureInfo.InvariantCulture));
+                        var p = new Member()
+                        {
+                            FirstName = a[2].Trim(),
+                            LastName = a[1].Trim(),
+                            Birthday = DateTime.Parse(a[9].Trim(), CultureInfo.InvariantCulture)
+                        };
+
+                        fakeMembers.Add(p);
+                    }
+
+                    
+                    db.AddRange(fakeMembers); 
+                    db.SaveChanges();
+
+                } 
+                
+
 
                 // Die Funktion db.Items.Count() liefert als Rückgabewert die Anzahl der Datensätze (Tupel)
                 // in der Tabelle Items. Sind keine Datensätze vorhanden, weil die DB z.B. vorher gelöscht wurde,
