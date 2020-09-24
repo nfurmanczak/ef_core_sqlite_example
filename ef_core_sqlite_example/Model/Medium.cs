@@ -8,12 +8,14 @@
 
     public class Medium
     {        
-        public string Identifier { get; set; } // Primärschlüssel 
+        public int Id { get; set; } // Primärschlüssel
         public string Title { get; set; }
-        public string Category { get; set; }
-        public string Kind { get; set; }
-        public string Description { get; set; }
         public string Publisher { get; set; }
-        public string Autor { get; set; }
+        public virtual string Autor { get; set; }
+        public string Price { get; set; }
+        public string Ean { get; set; }
+        public string Date { get; set; }
+        public Category Categorytype { get; set; } // Fremdschlüssel zu Tabelle Categorys.Id
+        public Format Formattype { get; set; } // Fremdschlüssel zur Tabelle Formats.Id
     }
 }

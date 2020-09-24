@@ -18,10 +18,12 @@ namespace ef_core_sqlite_example.Model
         public DbSet<Item> Items { get; set; }
         public DbSet<Member> Members { get; set; }
         public DbSet<Medium> Mediums { get; set; }
+        public DbSet<Category> Categorys { get; set; }
+        public DbSet<Format> Formats { get; set; }
 
         // Erstelle eine Variable vom Typ ILoggerFactory mit null
         // Die Variable kann als Schalter genutzt werden um die Logfunktion im Programm zu aktivieren oder deaktivieren. 
-        private ILoggerFactory loggerFactory = null;
+        private ILoggerFactory loggerFactory = null; 
 
         // Überschreiben der Funktion OnConfiguring aus der Klasse Microsoft.EntityFrameworkCore.DbContext.
         // In dieser Funktion werden u.a. die Zugriffsinformationen und Einstellungen der Datenbank gespeichert.
@@ -30,8 +32,10 @@ namespace ef_core_sqlite_example.Model
         {
             dcob.UseSqlite("Data Source=" + DataBaseFile);
 
-            // Abfrage des Logging-Schalter ob aktiv oder inaktiv 
-            if (loggerFactory == null)
+            // Abfrage des Logging-Schalter ob aktiv oder inaktiv
+            // Logging DEAKTIVIERT: loggerFactory != null
+            // Logging AKTIVIERT: loggerFactory = null
+            if (loggerFactory != null)
             {
                 // Definition der Logging Parameter 
                 //loggerFactory = LoggerFactory.Create(lbldr => lbldr.AddConsole());
@@ -52,7 +56,8 @@ namespace ef_core_sqlite_example.Model
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Definieren eines PK in der Tabelle Member 
-            modelBuilder.Entity<Medium>().HasKey("Identifier");
+            modelBuilder.Entity<Medium>().HasKey("Id");
+            
 
             // Beispiel für einen Zusammengesetzten PK in der Tabelle Members für die Attribute LastName und FirstName
             //modelBuilder.Entity<Member>().HasKey("LastName", "FirstName");
@@ -65,7 +70,16 @@ namespace ef_core_sqlite_example.Model
                 .WithMany().
                 OnDelete(DeleteBehavior.Cascade);
 
-            
+            modelBuilder.Entity<Medium>()
+               .HasOne(i => i.Categorytype)
+               .WithMany().
+               OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Medium>()
+               .HasOne(i => i.Formattype)
+               .WithMany().
+               OnDelete(DeleteBehavior.Cascade);
+
 
             /* Die Beschreibung von Beziehungen kann sowohl aus der Sicht der Tabelle Items als auch Members erfolgen.
              * Für Members ergibt sich eine erwas andere Sichtweise: Während ein Item nur einem Member zugeordnet wird, 
