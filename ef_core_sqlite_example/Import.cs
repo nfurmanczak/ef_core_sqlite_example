@@ -4,16 +4,23 @@ using System.IO;
 using System.Linq; 
 using ef_core_sqlite_example.Model;
 using System.Globalization;
-using System.Threading;
-using Microsoft.EntityFrameworkCore.Storage;
-using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace ef_core_sqlite_example
 {
     public class Import
     {
 
-        public static List<Member> ImportMembers ()
+        /* Importieren von Personen (Members):
+        * Via Streamreader wird einme CSV Datei (fake-persons.txt) eingelesen welche mehrere Personendaten enthält. Die erste Zeile enthält nur Metadaten welche 
+        * übersprungen werden müssen. In der CSV Datei werden die einzelnen Daten mittels Semikolon (;) oder Komma (,) getrennt. Mittels Trim() wird die Zeile in 
+        * in die Benötigten einzelnen Teile zerlegt und an ein Objekt vom Typ Member übergeben. Das Objekt wird dann in einert Liste (fakeMembers) gespeichert und am 
+        * Ende der Methode zurückgegeben. 
+        * 
+        */
+
+        public static List<Member> ImportMembers()
         {
             using (var sr = new StreamReader(@"@../../../fake-persons.txt", true))
             {
@@ -42,6 +49,13 @@ namespace ef_core_sqlite_example
                 return fakeMembers;
             }
         }
+
+
+        /* Importieren von Formatdaten:
+         * Jedem Medium wird jeweils ein Formattyp (Buch, CD, Hardcover, etc.) zugeordnet. Die Formate beginnen in der Textdatei mit "FORMAT:".   
+         * Die gefundenen Formate werden in einer Liste (List<Format> fakeFormat) gespeichert. Vor dem Speichern wird mittels einer Methode (CheckDuplicates) geprüft ob das Format schon
+         * in der Liste gespeichert wurde. Die Methode gibt im Anschluss eine Liste mit Objekten vim Typ Format zurück. 
+         */
 
         public static List<Format> ImportFormat()
         {
@@ -88,6 +102,12 @@ namespace ef_core_sqlite_example
             }
 
         }
+
+        /* Importieren von Kategorien 
+         * Das Importieren der Kategorien funktioniert wie bei den Formaten. Die Kategorien beginnen in der Textdatei mit "CATEGORY:". Die gefudenen Kategorioen werden 
+         * in deiner Liste (List<Category> fakeCategory) gespeichert. Bei der speicherung wird mittels einer Methode darauf gedachtet das keine doppelten Kategorien 
+         * gespeichert werden. Die Funktion gibt eine Liste mit mehreren Category Objekten zurück. 
+         */
 
         public static List<Category> ImportCategory()
         {
@@ -138,16 +158,87 @@ namespace ef_core_sqlite_example
 
         }
 
-        public static List<Medium> ImportMediums(List<Format> formats, List<Category> category )
+        public static List<Author> ImportAuthor(List<Medium> mediums)
         {
-
-            string colonsplitt(string line)
+            string ReplaceIfEmpty(string input)
             {
-                var tmp = line.Split(':');
-                if (tmp[1].Length == 0)            
+                if (input.Length == 0)
                     return "unbekannt";
                 else
-                    return tmp[1]; 
+                    return input; 
+            }
+            using (var sr = new StreamReader(@"@../../../spiegel-bestseller.txt", true))
+            {
+                List<Author> fakeAuthor = new List<Author>();
+
+                foreach (var item in mediums)
+                {
+                    Console.WriteLine("Author: " + item.Author); 
+                }
+
+                while (!sr.EndOfStream)
+                {
+
+                    var line = sr.ReadLine();
+                    if (line.Length == 0) continue;
+                    if (line.StartsWith("#")) continue;
+
+                    if (line.StartsWith("AUTHOR:"))
+                    {
+                        var a = line.Split(':');
+                        var b = a[1].Split(';');
+
+                        //if (a[1].Length == 0)
+                        //    a[1] = "unbekannt";
+                        
+                        foreach (var item in b)
+                        {
+                            
+                            if(
+                                (
+                                    !fakeAuthor.Any(a => a.FirstName == item.Split(',').Last()) &&
+                                    !fakeAuthor.Any(b => b.LastName == item.Split(',').First())
+                                )   && a[1].Length != 0
+                              )
+                            {
+
+                                fakeAuthor.Add(new Author {
+                                                            FirstName = ReplaceIfEmpty(item.Split(',').Last().Trim()),
+                                                            LastName = ReplaceIfEmpty(item.Split(',').First().Trim()),
+                                                            //MediumId = mediums.Where(x => x.Author == a[1]).ToList()
+                                                          });
+                            }
+                        }
+                    }
+                }
+                return fakeAuthor;
+            }
+        }
+
+        /* Importieren von Medien 
+         * Die Daten für die Medien bestehen aus jeweils 6 Zeilen welche nicht alle Daten enthalten. Ein Medium beginnt immer mit "AUTHOR:" und endet mit "PRICE:". Die einzelnen 
+         * Zeilen werden jeweils mittels Split(:) getrennt und in ein 1 Dimensionales String Array gespeichert. Wurde er Preis als letzter Wert eingelesen wird ein neues 
+         * Objekt vom Typ Medium erzeugt und anschließend in eine List (List<Medium> fakeMediums) hinzugefügt. Der Rückgabewert kann dann in die Datenbank geschieben werden.
+         * 
+         * Beispiel Daten: 
+         * 
+         * AUTHOR:Owens, Delia
+         * TITLE:Der Gesang der Flusskrebse
+         * EAN:9783446264199
+         * PUBLISHER:hanserblau
+         * DATE:Juli 2019
+         * PRICE:22,00€
+         */
+
+        public static List<Medium> ImportMediums(List<Format> formats, List<Category> category)
+        {
+
+            string Colonsplitt(string line)
+            {
+                if (line.Split(':')[1].Length == 0)            
+                    return "unbekannt";
+                else
+                    return line.Split(':')[1]; 
             }
 
             using (var sr = new StreamReader(@"@../../../spiegel-bestseller.txt", true))
@@ -159,58 +250,56 @@ namespace ef_core_sqlite_example
 
                 while (!sr.EndOfStream)
                 {
-                    List<Category> importCategory = new List<Category>();
-
-
+                 
                     var line = sr.ReadLine();
                     if (line.Length == 0) continue;
                     if (line.StartsWith("#")) continue;
 
                     if (line.StartsWith("CATEGORY:"))
                     {
-                        tmpmedium[7] = colonsplitt(line);
+                        tmpmedium[7] = Colonsplitt(line);
                     }
                     
                     if (line.StartsWith("FORMAT:"))
                     {
-                        tmpmedium[6] = colonsplitt(line);
+                        tmpmedium[6] = Colonsplitt(line);
                     }
 
                     if (line.StartsWith("AUTHOR:"))
                     {
-                        tmpmedium[0] = colonsplitt(line);
+                        tmpmedium[0] = Colonsplitt(line);
                     }
 
                     if (line.StartsWith("TITLE:"))
                     {
-                        tmpmedium[1] = colonsplitt(line);
+                        tmpmedium[1] = Colonsplitt(line);
                     }
 
                     if (line.StartsWith("EAN:"))
                     {
-                        tmpmedium[2] = colonsplitt(line);
+                        tmpmedium[2] = Colonsplitt(line);
                     }
 
                     if (line.StartsWith("PUBLISHER:"))
                     {
-                        tmpmedium[3] = colonsplitt(line);
+                        tmpmedium[3] = Colonsplitt(line);
                     }
 
                     if (line.StartsWith("DATE:"))
                     {
-                        tmpmedium[4] = colonsplitt(line);
+                        tmpmedium[4] = Colonsplitt(line);
                     }
 
                     if (line.StartsWith("PRICE:"))
                     {
-                        tmpmedium[5] = colonsplitt(line);
+                        tmpmedium[5] = Colonsplitt(line);
 
-
-                        Medium bla = new Medium()
+                        Medium medium = new Medium()
                         {
-                            Autor = tmpmedium[0],
-                            Categorytype = category.Where(c => c.Categorytype == tmpmedium[7]).First(),
-                            Formattype = formats.Where(f => f.Formattype == tmpmedium[6]).First(), 
+                            //codebase.Methods.Where(x => (x.Body.Scopes.Count > 5) && (x.Foo == "test"));
+                            Category = category.Where(c => c.Categorytype == tmpmedium[7]).First(),
+                            Format = formats.Where(f => f.Formattype == tmpmedium[6]).First(),
+                            Author = tmpmedium[0],
                             Title = tmpmedium[1],
                             Publisher = tmpmedium[3],
                             Date = tmpmedium[4],
@@ -218,32 +307,7 @@ namespace ef_core_sqlite_example
                             Price = tmpmedium[5]
                         };
 
-                        fakeMediums.Add(bla); 
-                        /* TBD 
-                        // Mehrere Autoren sind am Bich beteiligt
-                        if (tmpmedium[0].Contains(";"))
-                        {
-                             
-                            int count = tmpmedium[0].Count(f => f == ';');
-                            var tmp = line.Split(';');
-                            for (int i = 0; i < count; i++)
-                            {
-
-                            }
-
-                            Console.WriteLine("Anzahl Autoren: " + count);
-                            // Zwei Autoren vorhanden
-                            Console.WriteLine("Autoren: " + tmpmedium[0]);
-                            Medium bla = new Medium() { Autor = tmpmedium[0], Categorytype = c, Formattype = f, Title = tmpmedium[1], Publisher = tmpmedium[3], Date = tmpmedium[4], Ean = tmpmedium[2], Price = tmpmedium[5] };
-                            fakeMediums.Add(bla);
-                        }
-                        else
-                        {
-                            // Nur ein Autor vorhanden
-                            Medium bla = new Medium() { Autor = tmpmedium[0], Categorytype = c, Formattype = f, Title = tmpmedium[1], Publisher = tmpmedium[3], Date = tmpmedium[4], Ean = tmpmedium[2], Price = tmpmedium[5] };
-                            fakeMediums.Add(bla);
-                        }
-                        */ 
+                        fakeMediums.Add(medium);
                     }
                 }
 

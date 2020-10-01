@@ -1,4 +1,4 @@
-﻿// using ef_core_sqlite_example.Model wird benötigt um auf die Klassen im Verzeichnis "Model/" zuzugreifen 
+﻿// using ef_core_sqlite_example.Model wird benötigt um auf Klassen im Verzeichnis "Model/" zuzugreifen 
 using ef_core_sqlite_example.Model;
 using System.Collections.Generic; 
 using System;
@@ -29,17 +29,17 @@ namespace ef_core_sqlite_example
             using (var db = new ModelContext())
             {
 
-                // EnsureCreated() ist eine Funktion aus Microsoft.EntityFrameworkCore welche prüft, ob
-                // die angegebene Datenbank vorhanden ist. (Boolscher Rückgabewert)
-
                 db.Database.EnsureCreated();
 
                 // Importieren von Testdaten                  
                 db.AddRange(Import.ImportMembers());
                 db.AddRange(Import.ImportFormat());
                 db.AddRange(Import.ImportCategory());
+                
                 db.SaveChanges();
                 db.AddRange(Import.ImportMediums(db.Formats.ToList(), db.Categorys.ToList()));
+                db.SaveChanges(); 
+                db.AddRange(Import.ImportAuthor(db.Mediums.ToList()));
                 db.SaveChanges();
     
             }
