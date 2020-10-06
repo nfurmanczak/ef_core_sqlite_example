@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq; 
+using System.Linq;
 using ef_core_sqlite_example.Model;
 using System.Globalization;
-using System.Security.Cryptography.X509Certificates;
 using Microsoft.EntityFrameworkCore.Internal;
 
 namespace ef_core_sqlite_example
@@ -49,7 +48,6 @@ namespace ef_core_sqlite_example
                 return fakeMembers;
             }
         }
-
 
         /* Importieren von Formatdaten:
          * Jedem Medium wird jeweils ein Formattyp (Buch, CD, Hardcover, etc.) zugeordnet. Die Formate beginnen in der Textdatei mit "FORMAT:".   
@@ -158,7 +156,7 @@ namespace ef_core_sqlite_example
 
         }
 
-        public static List<Author> ImportAuthor(List<Medium> mediums)
+        public static List<Author> ImportAuthor()
         {
             string ReplaceIfEmpty(string input)
             {
@@ -167,46 +165,37 @@ namespace ef_core_sqlite_example
                 else
                     return input; 
             }
+
             using (var sr = new StreamReader(@"@../../../spiegel-bestseller.txt", true))
             {
                 List<Author> fakeAuthor = new List<Author>();
-
-                foreach (var item in mediums)
-                {
-                    Console.WriteLine("Author: " + item.Author); 
-                }
 
                 while (!sr.EndOfStream)
                 {
 
                     var line = sr.ReadLine();
-                    if (line.Length == 0) continue;
-                    if (line.StartsWith("#")) continue;
+                    if (line.Length == 0 || line.StartsWith("#")) continue;
 
                     if (line.StartsWith("AUTHOR:"))
                     {
                         var a = line.Split(':');
                         var b = a[1].Split(';');
-
-                        //if (a[1].Length == 0)
-                        //    a[1] = "unbekannt";
                         
                         foreach (var item in b)
                         {
                             
                             if(
-                                (
-                                    !fakeAuthor.Any(a => a.FirstName == item.Split(',').Last()) &&
+                                    !fakeAuthor.Any(a => a.FirstName == item.Split(',').First()) &&
                                     !fakeAuthor.Any(b => b.LastName == item.Split(',').First())
-                                )   && a[1].Length != 0
+                                   && a[1].Length != 0
                               )
                             {
 
-                                fakeAuthor.Add(new Author {
-                                                            FirstName = ReplaceIfEmpty(item.Split(',').Last().Trim()),
-                                                            LastName = ReplaceIfEmpty(item.Split(',').First().Trim()),
-                                                            //MediumId = mediums.Where(x => x.Author == a[1]).ToList()
-                                                          });
+                                fakeAuthor.Add(new Author
+                                {
+                                    FirstName = ReplaceIfEmpty(item.Split(',').Last().Trim()),
+                                    LastName = ReplaceIfEmpty(item.Split(',').First().Trim())
+                                });
                             }
                         }
                     }
@@ -315,5 +304,32 @@ namespace ef_core_sqlite_example
             }
         }
 
+        public static List<Medium_Author> ImportAuthors_Medium(List<Author> authoren, List<Medium> mediums)
+        {
+            List <Medium_Author> medium_authors = new List<Medium_Author>();
+
+
+            foreach (var item in mediums)
+            {
+                if (item.Author == "unbekannt") continue;
+
+                foreach (var author in item.Author.Split(";"))
+                {
+                    // Enthält den einzelnen Namen des Authors
+                
+                    foreach (var x in authoren)
+                    {
+                        var name = x.LastName + " " + x.FirstName;
+                        
+                        if (name == author.Trim().Replace(",", ""))
+                        {
+                            var c = new Medium_Author() { MediumId = item, AuthorId = x };
+                            medium_authors.Add(c);   
+                        }
+                    }
+                }
+            }
+            return medium_authors; 
+        }
     }
 }
