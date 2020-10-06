@@ -31,20 +31,27 @@ namespace ef_core_sqlite_example
 
                 db.Database.EnsureCreated();
 
-                // Importieren von Testdaten                  
-                db.AddRange(Import.ImportMembers());
-                db.AddRange(Import.ImportFormat());
-                db.AddRange(Import.ImportCategory());
+                List<Member> members = Import.ImportMembers();
+                List<Format> formats = Import.ImportFormat();
+                List<Category> categories = Import.ImportCategory();
+                List<Medium> mediums = Import.ImportMediums(formats, categories);
+                List<Author> authors = Import.ImportAuthor();
                 
+
+                db.AddRange(members);
+                db.AddRange(formats);
+                db.AddRange(categories);
+                db.AddRange(mediums);
+                db.AddRange(authors); 
                 db.SaveChanges();
-                db.AddRange(Import.ImportMediums(db.Formats.ToList(), db.Categorys.ToList()));
+
+                List<Medium_Author> medium_authors = Import.ImportAuthors_Medium(db.Authors.ToList(), db.Mediums.ToList());
+                db.AddRange(medium_authors);
                 db.SaveChanges(); 
-                db.AddRange(Import.ImportAuthor(db.Mediums.ToList()));
-                db.SaveChanges();
-    
+
             }
 
-            Console.WriteLine("\n=*=*=* ENDE =*=*=*");
+            Console.WriteLine("Fertig.");
             Console.ReadLine();
         }
     }

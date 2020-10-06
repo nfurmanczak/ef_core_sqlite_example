@@ -36,6 +36,7 @@ namespace ef_core_sqlite_example.Model
         public DbSet<Category> Categorys { get; set; }
         public DbSet<Format> Formats { get; set; }
         public DbSet<Author> Authors { get; set; }
+        public DbSet<Medium_Author> Medium_Authors { get; set; }
 
         private ILoggerFactory loggerFactory = null; 
 
@@ -82,10 +83,7 @@ namespace ef_core_sqlite_example.Model
                 .WithMany().
                 OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Medium>()
-                .HasMany<Author>()
-                .WithOne(i => i.MediumId)
-                .OnDelete(DeleteBehavior.Cascade);
+       
 
             /* Beispiel: 
              * Die Beschreibung von Beziehungen kann sowohl aus der Sicht der Tabelle Items als auch Members erfolgen.
