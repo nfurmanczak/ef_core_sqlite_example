@@ -25,24 +25,18 @@ namespace ef_core_sqlite_example
             {
                 List<Member> fakeMembers = new List<Member>();
 
-                if (!sr.EndOfStream)
-                {
-                    sr.ReadLine();
-                }
+                if (!sr.EndOfStream) sr.ReadLine();
 
                 while (!sr.EndOfStream)
                 {
-                    var l = sr.ReadLine();
-                    var a = l.Split(';', ',');
-
-                    var p = new Member()
+                    var l = sr.ReadLine().Split(';',',');
+               
+                    fakeMembers.Add(new Member()
                     {
-                        FirstName = a[2].Trim(),
-                        LastName = a[1].Trim(),
-                        Birthday = DateTime.Parse(a[9].Trim(), CultureInfo.InvariantCulture)
-                    };
-
-                    fakeMembers.Add(p);
+                        FirstName = l[2].Trim(),
+                        LastName = l[1].Trim(),
+                        Birthday = DateTime.Parse(l[9].Trim(), CultureInfo.InvariantCulture)
+                    });
                 }
 
                 return fakeMembers;

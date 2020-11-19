@@ -25,6 +25,7 @@ namespace ef_core_sqlite_example.Model
      * 
     */
 
+ 
 
     public class ModelContext : DbContext
     {
@@ -49,7 +50,7 @@ namespace ef_core_sqlite_example.Model
             if (loggerFactory != null)
             {
                 loggerFactory = LoggerFactory.Create(lbldr => lbldr
-                    .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Information)
+                    .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Debug)
                     .AddConsole());
             }
             dcob = dcob.UseLoggerFactory(loggerFactory);

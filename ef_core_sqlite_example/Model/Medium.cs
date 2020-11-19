@@ -32,6 +32,7 @@ namespace ef_core_sqlite_example.Model
         public Category Category { get; set; }
         public Format Format { get; set; }
         public string Author { get; set; }
+        public int Borrow { get; set; }
         // [NotMapped]
         // public string Author { get; set; }
         // public virtual ICollection<String> Author { get; set; } = new List<String>();
